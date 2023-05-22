@@ -1,0 +1,121 @@
+
+syntax = "proto3";
+
+// each class is defined in each own file, inside a common package
+option java_multiple_files = true;
+option java_package = "kademlia";
+
+package kademlia; // package do proto
+
+service Kademlia {
+  rpc ping(NodeInfo) returns (NodeInfo);
+  rpc store (StoreRequest) returns (StoreResponse);
+  rpc findNode (FindNodeRequest) returns (stream FindNodeResponse);
+  rpc findValue (FindValueRequest) returns (stream FindValueResponse);
+  rpc challenge (ChallengeRequest) returns (ChallengeResponse);
+  rpc join (JoinRequest) returns (JoinResponse);
+}
+
+message StoreResponse {
+  NodeInfo sender = 1;
+  bool success = 2;
+}
+
+message NodeInfo {
+  string id = 1;
+  string ip = 2;
+  string port = 3;
+}
+
+message FindNodeRequest {
+  string targetId = 1;
+  NodeInfo sender = 2;
+}
+
+message FindNodeResponse {
+  NodeInfo node = 1;
+}
+
+message SignatureProto{
+  string hash = 1;
+  bytes publicKey = 2;
+  bytes signature = 3;
+}
+
+// Share auction
+message AuctionProto{
+  string name = 1;
+  int32 basePrice = 2;
+  int32 currentBid = 8;
+  string currentBidder = 9;
+  int64 deadline = 3;
+  SignatureProto signature = 4;
+  string topic = 5;
+  string sellerID = 6;
+  bytes sellerPubKey = 7;
+}
+
+
+// Make a transaction
+message TransactionProto{
+  string name = 1;
+  int32 finalPrice = 2;
+  int64 timestamp = 3;
+  SignatureProto signature = 4;
+  string topic = 5;
+  bytes auctionPublicKey = 6;
+  NodeInfo buyerInfo = 7;
+  bool ative = 8;
+}
+
+message StoreRequest {
+  NodeInfo sender = 1;
+  string key = 2;
+  oneof BlockOrAuction{
+    BlockProto block = 4;
+    AuctionProto auction = 5;
+  }
+}
+
+message FindValueRequest{
+  string targetKey = 1;
+  NodeInfo sender   = 2;
+}
+
+message FindValueResponse {
+  oneof NodeOrValue {
+    BlockProto block = 1;
+    NodeInfo node = 2;
+  }
+}
+
+message BlockProto {
+  int32 id = 1;
+  fixed64 nonce = 2;
+  fixed64 timestamp = 3;
+  string hash = 4;
+  string previoushash = 5;
+  TransactionProto transaction = 6;
+}
+
+message JoinRequest{
+  string hash = 1;
+  fixed64 timestamp = 2;
+  string ip = 3;
+  string port = 4;
+  fixed64 nonce = 5;
+}
+
+message JoinResponse{
+  string id = 1;
+  int32 hasBlock = 2;
+  BlockProto headBlock = 3;
+}
+
+message ChallengeRequest{
+
+}
+
+message ChallengeResponse{
+  fixed64 timestamp = 1;
+}
